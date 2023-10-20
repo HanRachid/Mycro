@@ -2,6 +2,9 @@
 
 namespace Framework\Routing;
 
+/**
+ * Route class, has method, path and handler,
+ */
 class Route
 {
     protected string $method;
@@ -14,4 +17,38 @@ class Route
         $this->path = $path;
         $this->handler = $handler;
     }
-}
+    /**
+     * stored route's path getter
+     *
+     * @return string
+     */
+    public function path(): string
+    {
+        return $this->path;
+    }
+    /**
+     * stored route's method getter
+     *
+     * @return string
+     */
+    public function method(): string
+    {
+        return $this->method;
+    }
+    /**
+     * returns true if route matches method and path
+     *
+     * @param string $method
+     * @param string $path
+     * @return boolean
+     */
+    public function matches(string $method, string $path): bool
+    {
+        return $this->method === $method && $this->path === $path;
+    }
+
+    public function dispatch()
+    {
+        return call_user_func($this->handler);
+    }
+};
