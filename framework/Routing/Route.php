@@ -28,6 +28,11 @@ class Route
     protected array $parameters;
 
     /**
+     * @var
+     */
+    protected ?string $name = null;
+
+    /**
      *  Route class constructor.
      *
      * @param string $method new route's method.
@@ -104,6 +109,7 @@ class Route
         // we normalize the path  user/JohnDoe/Comments//5/Replies/12
         // becomes /user/JohnDoe/comments/5/replies/12/
         $normalized_server_path = $this->normalizePath($this->path);
+        $normalized_user_path = $this->normalizePath($path);
 
         // we match every occurrence of our regular expression in our route
         // if our path is user/{name}/comments/{commentId}/replies/{replyId?}/
@@ -140,13 +146,18 @@ class Route
         if (!str_contains($pattern, '+') && !str_contains($pattern, '*')) {
             return false;
         }
-        $normalized_user_path = $this->normalizePath($path);
-        $params = array();
-        preg_match_all(
-            "#{$pattern}#", $this->normalizePath($path), $matches
-        );
-        $parameter_values = array();
 
+        // if our regex matches our named route params, we fill our
+        // params array with our route's params as key (without curly braces),
+        // and the url's params
+        if (preg_match("#{$pattern}#", $normalized_user_path, $matches)) {
+            foreach ($param_keys as $key=>$param) {
+                $this->parameters[$param] = $matches[$key + 1];
+            }
+            return true;
+        };
+
+        // if the url matches no route, named or normal, return false
         return false;
     }
 
@@ -181,6 +192,22 @@ class Route
     public function handler()
     {
         return call_user_func($this->handler);
+    }
+
+    /**
+     * if route already has a name, return the name, otherwise set.
+     * route's name to name in method parameter
+     *
+     * @param ?string $name null or new name for route
+     * @return mixed
+     */
+    public function name(string $name = null): mixed
+    {
+        if ($name) {
+            $this->name = $name;
+            return $this;
+        }
+        return $this->name;
     }
 }
 ;

@@ -2,6 +2,7 @@
 
 namespace Framework\Routing;
 
+use Exception;
 use Throwable;
 
 /**
@@ -157,6 +158,38 @@ class Router
     {
         $this->error_handler[$code] ??= $handler;
         return $code . ' ' . call_user_func($handler);
+    }
+
+    /**
+     * creates route from name.
+     * @param string $name name of route
+     * @param array $params name of parameters
+     */
+    public function route(string $name, array $params)
+    {
+        foreach ($this->routes as $route) {
+            if ($route->name() === $name) {
+                $finds = array();
+                $replaces = array();
+                foreach ($params as $key => $value) {
+                    // replace required params with value
+                    array_push($finds, "{{$key}}");
+                    array_push($replaces, $value);
+
+                    // replace optional params with value with a ?
+                    array_push($finds, "{{$key}?}");
+                    array_push($replaces, $value);
+                }
+                $path = $route->path();
+                $path = str_replace($finds, $replaces, $path);
+
+                // remove not provided optional params
+                $path = preg_replace('#{[^}]+}#', '', $path);
+
+                return $path;
+            }
+        }
+        throw new Exception('No route with this name');
     }
 }
 ;

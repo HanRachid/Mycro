@@ -13,4 +13,8 @@ return function(Router $router) {
         'user/{name}/comments/{commentId}/replies/{replyId?}/',
         fn() => 'hello '
     );
+    $router->addRoute('GET',
+        'foo/{boo}/bar/{far}/baz/{faz?}/',
+        fn() => $router->currentRoute()->parameters()['boo']
+    );
 };
