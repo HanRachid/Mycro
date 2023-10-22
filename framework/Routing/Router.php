@@ -16,12 +16,24 @@ class Router
     protected array $routes = array();
 
     /**
+     * @var Route current route
+     */
+    protected Route $current_route;
+
+    /**
      * @var array error_handler
      */
     protected array $error_handler = array(
-        '400' => 'Not Allowed',
-        '404' => 'Not Found',
+
     );
+
+    /**
+     *  getter for current_route.
+     */
+    public function currentRoute()
+    {
+        return $this->current_route;
+    }
 
     /**
      * adds route to router and returns it.
@@ -49,20 +61,27 @@ class Router
      */
     public function dispatch()
     {
-        //$paths = $this->paths();
+        $paths = $this->paths();
         $request_method = $_SERVER['REQUEST_METHOD'] ?? 'GET';
         $request_path = $_SERVER['REQUEST_URI'] ?? '/';
-        $matching = $this->match($request_method, $request_path);
-        if ($matching !== null) {
+        $matching_route = $this->match($request_method, $request_path);
+        if ($matching_route) {
             try {
-                return $matching->handler();
+                //found matching route
+                $this->current_route = $matching_route;
+                return $matching_route->handler();
             } catch (Throwable $e) {
-                return 'Server Error';
+                //server error
+                return $this->serverError();
             }
         }
-        if (in_array($request_path, $this->paths())) {
+
+        // path associated with different method
+        if (in_array($request_path, $paths)) {
             return $this->notAllowed();
         }
+
+        // no matching route
         return $this->notFound();
     }
 
@@ -104,26 +123,40 @@ class Router
      */
     public function notAllowed(): string
     {
-        return $this->dispatchError('400');
+        $handler = fn () => 'Not Allowed';
+        return $this->dispatchError('400', $handler);
     }
 
     /**
-     *  handler for route not found;.
+     *  handler for route not found.
      *  @return string
      */
     public function notFound(): string
     {
-        return $this->dispatchError('404');
+        $handler = fn () => 'Not Found';
+        return $this->dispatchError('404', $handler);
+    }
+
+    /**
+     * handler for server error.
+     * @return string
+     */
+    public function serverError(): string
+    {
+        $handler = fn () => 'Server Error';
+        return $this->dispatchError('500', $handler);
     }
 
     /**
      * matches error code with associated handler.
      * @param string $code error code
+     * @param callable $handler associated with error
      * @return string
      */
-    public function dispatchError(string $code): string
+    public function dispatchError(string $code, callable $handler): string
     {
-        return $code . ' ' . $this->error_handler[$code];
+        $this->error_handler[$code] ??= $handler;
+        return $code . ' ' . call_user_func($handler);
     }
 }
 ;

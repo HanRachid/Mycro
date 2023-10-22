@@ -7,5 +7,10 @@ use Framework\Routing\Router;
  *
  */
 return function(Router $router) {
-    $router->addRoute('POST', '/', fn() => 'hello world');
+
+    $router->addRoute('GET', '/', fn() => 'hello world');
+    $router->addRoute('GET',
+        'user/{name}/comments/{commentId}/replies/{replyId?}/',
+        fn() => 'hello '
+    );
 };
