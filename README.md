@@ -1,6 +1,6 @@
 # Mycro
 
-Micro backend framework based on Christopher Pitt's PRO PHP 8 MVC book
+Micro backend framework based on [@Christopher Pitt](https://github.com/assertchris)'s PRO PHP 8 MVC book 
 
 ## Features
 
